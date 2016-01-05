@@ -36,10 +36,11 @@ public class LimitedHistorySink implements HistorySink {
 		// we do a getAndIncrement, that means the current counter is one ahead of what we have last written
 		long index = counter.get() - 1;
 		List<SinkValue> values = new ArrayList<SinkValue>();
-		for (int i = 0; i < Math.min(size, amount); i++) {
-			if (index < 0) {
-				break;
-			}
+		// never more than the max size
+		amount = Math.min(size, amount);
+		// never more than the index
+		amount = (int) Math.min(amount, index + 1);
+		for (int i = 0; i < amount; i++) {
 			values.add(new SinkValueImpl(this.timestamps.get((int) ((index - i) % size)), this.values.get((int) ((index - i) % size))));
 		}
 		return new SinkSnapshotImpl(values);
@@ -51,10 +52,7 @@ public class LimitedHistorySink implements HistorySink {
 		long index = counter.get() - 1;
 		List<SinkValue> values = new ArrayList<SinkValue>();
 		// note that this implementation is susceptible to wrap-around but because we are doing a time-based check, you will simply get new values
-		for (int i = 0; i < size; i++) {
-			if (index < 0) {
-				break;
-			}
+		for (int i = 0; i < Math.min(size, index + 1); i++) {
 			SinkValueImpl value = new SinkValueImpl(this.timestamps.get((int) ((index - i) % size)), this.values.get((int) ((index - i) % size)));
 			// only add the value if the timestamp is in the window
 			// otherwise we still continue because the insertions may not be chronologically (due to parallelism)

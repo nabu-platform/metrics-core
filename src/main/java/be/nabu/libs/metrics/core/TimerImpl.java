@@ -10,15 +10,18 @@ public class TimerImpl implements MetricTimer {
 
 	private long started;
 	private MetricInstanceImpl metrics;
+	private String category;
 	
-	TimerImpl(MetricInstanceImpl metrics) {
+	TimerImpl(MetricInstanceImpl metrics, String category) {
 		this.metrics = metrics;
-		started = new Date().getTime();
+		this.category = category;
+		this.started = new Date().getTime();
 	}
 	
 	@Override
 	public long stop() {
 		long duration = new Date().getTime() - started;
+		getMetrics().duration(category, duration, getTimeUnit());
 		return duration;
 	}
 

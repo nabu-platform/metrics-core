@@ -1,5 +1,6 @@
 package be.nabu.libs.metrics.core;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +40,7 @@ public class MetricInstanceImpl implements MetricInstance {
 
 	@Override
 	public MetricTimer start(String category) {
-		// TODO Auto-generated method stub
-		return null;
+		return new TimerImpl(this, category);
 	}
 
 	@Override
@@ -85,8 +85,20 @@ public class MetricInstanceImpl implements MetricInstance {
 			gauges.put(category, gauge);
 		}
 	}
-
-	void log(long value, long started, long duration) {
-		
+	
+	public Collection<String> getGaugeIds() {
+		return gauges.keySet();
+	}
+	
+	public Collection<String> getSinkIds() {
+		return sinks.keySet();
+	}
+	
+	public MetricGauge getGauge(String id) {
+		return gauges.get(id);
+	}
+	
+	public Sink getSink(String id) {
+		return sinks.get(id);
 	}
 }
