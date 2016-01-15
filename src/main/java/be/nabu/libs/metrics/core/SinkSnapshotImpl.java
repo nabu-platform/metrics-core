@@ -12,6 +12,10 @@ public class SinkSnapshotImpl implements SinkSnapshot {
 
 	private List<SinkValue> values;
 
+	public SinkSnapshotImpl() {
+		// auto construct
+	}
+	
 	public SinkSnapshotImpl(List<SinkValue> values) {
 		this.values = new ArrayList<SinkValue>(values);
 		// sort them chronologically
@@ -25,6 +29,9 @@ public class SinkSnapshotImpl implements SinkSnapshot {
 	
 	@Override
 	public List<SinkValue> getValues() {
-		return new ArrayList<SinkValue>(values);
+		return values;
+	}
+	public void setValues(List<SinkValue> values) {
+		this.values = values;
 	}
 }
