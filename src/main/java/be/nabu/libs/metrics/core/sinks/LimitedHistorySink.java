@@ -7,11 +7,12 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import be.nabu.libs.metrics.core.SinkSnapshotImpl;
 import be.nabu.libs.metrics.core.SinkValueImpl;
+import be.nabu.libs.metrics.core.api.CurrentValueSink;
 import be.nabu.libs.metrics.core.api.HistorySink;
 import be.nabu.libs.metrics.core.api.SinkSnapshot;
 import be.nabu.libs.metrics.core.api.SinkValue;
 
-public class LimitedHistorySink implements HistorySink {
+public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 	
 	protected AtomicLong counter;
 	protected AtomicLongArray timestamps, values;
@@ -61,5 +62,11 @@ public class LimitedHistorySink implements HistorySink {
 			}
 		}
 		return new SinkSnapshotImpl(values);
+	}
+
+	@Override
+	public SinkValue getCurrent() {
+		List<SinkValue> values = getSnapshot(1).getValues();
+		return values.isEmpty() ? null : values.get(0);
 	}
 }

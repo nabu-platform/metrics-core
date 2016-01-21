@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import be.nabu.libs.events.api.EventDispatcher;
 import be.nabu.libs.metrics.api.MetricGauge;
 import be.nabu.libs.metrics.api.MetricInstance;
 import be.nabu.libs.metrics.api.MetricTimer;
 import be.nabu.libs.metrics.core.api.Sink;
+import be.nabu.libs.metrics.core.api.SinkEvent;
 import be.nabu.libs.metrics.core.api.SinkProvider;
 import be.nabu.libs.metrics.core.sinks.DeltaSink;
 
@@ -19,10 +21,16 @@ public class MetricInstanceImpl implements MetricInstance {
 	private Map<String, Sink> sinks = new HashMap<String, Sink>();
 	private String id;
 	private Map<String, MetricGauge> gauges = new HashMap<String, MetricGauge>();
+	private EventDispatcher dispatcher;
 
-	public MetricInstanceImpl(String id, SinkProvider sinkProvider) {
+	public MetricInstanceImpl(String id, SinkProvider sinkProvider, EventDispatcher dispatcher) {
 		this.id = id;
 		this.sinkProvider = sinkProvider;
+		this.dispatcher = dispatcher;
+	}
+	
+	public MetricInstanceImpl(String id, SinkProvider sinkProvider) {
+		this(id, sinkProvider, null);
 	}
 	
 	@Override
@@ -35,7 +43,31 @@ public class MetricInstanceImpl implements MetricInstance {
 			}
 		}
 		// normalize because we always expect the start of the timestamp to be there
-		sinks.get(category).push(new Date().getTime() - timeUnit.toMillis(duration), duration);
+		pushToSink(category, new Date().getTime() - timeUnit.toMillis(duration), duration);
+	}
+	
+	private void pushToSink(final String category, final long timestamp, final long value) {
+		sinks.get(category).push(timestamp, value);
+		if (dispatcher != null) {
+			dispatcher.fire(new SinkEvent() {
+				@Override
+				public long getValue() {
+					return value;
+				}
+				@Override
+				public long getTimestamp() {
+					return timestamp;
+				}
+				@Override
+				public Sink getSink() {
+					return sinks.get(category);
+				}
+				@Override
+				public String getCategory() {
+					return category;
+				}
+			}, sinks.get(category));
+		}
 	}
 
 	@Override
@@ -52,7 +84,7 @@ public class MetricInstanceImpl implements MetricInstance {
 				}
 			}
 		}
-		sinks.get(category).push(new Date().getTime(), amount);
+		pushToSink(category, new Date().getTime(), amount);
 	}
 
 	@Override
@@ -64,7 +96,7 @@ public class MetricInstanceImpl implements MetricInstance {
 				}
 			}
 		}
-		sinks.get(category).push(new Date().getTime(), value);
+		pushToSink(category, new Date().getTime(), value);
 	}
 
 	@Override
@@ -100,5 +132,12 @@ public class MetricInstanceImpl implements MetricInstance {
 	
 	public Sink getSink(String id) {
 		return sinks.get(id);
+	}
+
+	public EventDispatcher getDispatcher() {
+		return dispatcher;
+	}
+	public void setDispatcher(EventDispatcher dispatcher) {
+		this.dispatcher = dispatcher;
 	}
 }
