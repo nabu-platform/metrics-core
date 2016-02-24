@@ -66,7 +66,11 @@ public class MetricInstanceImpl implements MetricInstance {
 				public String getCategory() {
 					return category;
 				}
-			}, sinks.get(category));
+				@Override
+				public String getId() {
+					return id;
+				}
+			}, this);
 		}
 	}
 

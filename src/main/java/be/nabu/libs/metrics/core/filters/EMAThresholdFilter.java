@@ -52,6 +52,10 @@ public class EMAThresholdFilter implements EventHandler<SinkEvent, Boolean> {
 			public String getCategory() {
 				return event.getCategory();
 			}
+			@Override
+			public String getId() {
+				return event.getId();
+			}
 		});
 	}
 

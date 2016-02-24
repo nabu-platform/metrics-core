@@ -29,6 +29,9 @@ public class SinkSnapshotImpl implements SinkSnapshot {
 	
 	@Override
 	public List<SinkValue> getValues() {
+		if (values == null) {
+			values = new ArrayList<SinkValue>();
+		}
 		return values;
 	}
 	public void setValues(List<SinkValue> values) {
