@@ -22,6 +22,16 @@ public class MetricInstanceImpl implements MetricInstance {
 	private String id;
 	private Map<String, MetricGauge> gauges = new HashMap<String, MetricGauge>();
 	private EventDispatcher dispatcher;
+	
+	/**
+	 * By default we do not normalize the timers because default behavior should be chronologically consistent metrics
+	 */
+	private boolean normalizeTimers = false;
+	
+	/**
+	 * By default we normalize the timeunit to milliseconds to allow for easy graphing
+	 */
+	private boolean normalizeTimeUnit = true;
 
 	public MetricInstanceImpl(String id, SinkProvider sinkProvider, EventDispatcher dispatcher) {
 		this.id = id;
@@ -38,12 +48,20 @@ public class MetricInstanceImpl implements MetricInstance {
 		if (!sinks.containsKey(category)) {
 			synchronized(sinks) {
 				if (!sinks.containsKey(category)) {
-					sinks.put(category, sinkProvider.newSink(id, category));
+					sinks.put(category, sinkProvider.getSink(id, category));
 				}
 			}
 		}
-		// normalize because we always expect the start of the timestamp to be there
-		pushToSink(category, new Date().getTime() - timeUnit.toMillis(duration), duration);
+		// you can opt to "normalize" the timers where the timestamp will always point to the beginning of the event while the duration is logged in its natural timeunit
+		if (normalizeTimers) {
+			pushToSink(category, new Date().getTime() - timeUnit.toMillis(duration), normalizeTimeUnit ? timeUnit.toMillis(duration) : duration);
+		}
+		// however in a lot of cases we do NOT substract want to perform this normalization because it makes the metrics chronologically inconsistent
+		// normalizing allows the data to "jump back in time" from the point it was reported, especially for overlapping durations (e.g. multiple simultaneous service executions etc) this can mess up the timeline
+		// in such cases it is better to allow (visually speaking) the user to toggle a value as a duration to shift it at a later time, this at least keeps the metrics chronologically intact
+		else {
+			pushToSink(category, new Date().getTime(), normalizeTimeUnit ? timeUnit.toMillis(duration) : duration);
+		}
 	}
 	
 	private void pushToSink(final String category, final long timestamp, final long value) {
@@ -84,7 +102,7 @@ public class MetricInstanceImpl implements MetricInstance {
 		if (!sinks.containsKey(category)) {
 			synchronized(sinks) {
 				if (!sinks.containsKey(category)) {
-					sinks.put(category, new DeltaSink(sinkProvider.newSink(category, category)));
+					sinks.put(category, new DeltaSink(sinkProvider.getSink(category, category)));
 				}
 			}
 		}
@@ -96,7 +114,7 @@ public class MetricInstanceImpl implements MetricInstance {
 		if (!sinks.containsKey(category)) {
 			synchronized(sinks) {
 				if (!sinks.containsKey(category)) {
-					sinks.put(category, sinkProvider.newSink(id, category));
+					sinks.put(category, sinkProvider.getSink(id, category));
 				}
 			}
 		}

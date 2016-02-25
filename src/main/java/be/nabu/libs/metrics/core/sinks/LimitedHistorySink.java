@@ -1,6 +1,7 @@
 package be.nabu.libs.metrics.core.sinks;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -33,7 +34,7 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 	}
 
 	@Override
-	public SinkSnapshot getSnapshot(int amount) {
+	public SinkSnapshot getSnapshotUntil(int amount, long until) {
 		// we do a getAndIncrement, that means the current counter is one ahead of what we have last written
 		long index = counter.get() - 1;
 		List<SinkValue> values = new ArrayList<SinkValue>();
@@ -41,8 +42,12 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 		amount = Math.min(size, amount);
 		// never more than the index
 		amount = (int) Math.min(amount, index + 1);
-		for (int i = 0; i < amount; i++) {
-			values.add(new SinkValueImpl(this.timestamps.get((int) ((index - i) % size)), this.values.get((int) ((index - i) % size))));
+		int counter = 0;
+		while(values.size() < amount && counter <= index) {
+			SinkValueImpl value = new SinkValueImpl(this.timestamps.get((int) ((index - counter) % size)), this.values.get((int) ((index - counter++) % size)));
+			if (value.getTimestamp() <= until) {
+				values.add(value);
+			}
 		}
 		return new SinkSnapshotImpl(values);
 	}
@@ -71,7 +76,7 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 
 	@Override
 	public SinkValue getCurrent() {
-		List<SinkValue> values = getSnapshot(1).getValues();
+		List<SinkValue> values = getSnapshotUntil(1, new Date().getTime()).getValues();
 		return values.isEmpty() ? null : values.get(0);
 	}
 

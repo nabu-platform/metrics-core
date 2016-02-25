@@ -57,4 +57,8 @@ public class CMASink implements CurrentValueSink {
 	public SinkValue getCurrent() {
 		return cma == null ? null : new SinkValueImpl(timestamp.get(), (long) Double.longBitsToDouble(cma.get()));
 	}
+	
+	public double getValue() {
+		return cma == null ? 0 : Double.longBitsToDouble(cma.get());
+	}
 }

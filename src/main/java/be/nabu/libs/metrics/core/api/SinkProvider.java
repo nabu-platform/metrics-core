@@ -1,5 +1,5 @@
 package be.nabu.libs.metrics.core.api;
 
 public interface SinkProvider {
-	public Sink newSink(String id, String category);
+	public Sink getSink(String id, String category);
 }

@@ -55,5 +55,9 @@ public class EMASink implements CurrentValueSink {
 	public SinkValue getCurrent() {
 		return ema == null ? null : new SinkValueImpl(timestamp.get(), (long) Double.longBitsToDouble(ema.get()));
 	}
+	
+	public double getValue() {
+		return ema == null ? 0 : Double.longBitsToDouble(ema.get());
+	}
 
 }

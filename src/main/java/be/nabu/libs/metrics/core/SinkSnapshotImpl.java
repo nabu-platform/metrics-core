@@ -17,14 +17,20 @@ public class SinkSnapshotImpl implements SinkSnapshot {
 	}
 	
 	public SinkSnapshotImpl(List<SinkValue> values) {
+		this(values, true);
+	}
+	
+	public SinkSnapshotImpl(List<SinkValue> values, boolean sort) {
 		this.values = new ArrayList<SinkValue>(values);
-		// sort them chronologically
-		Collections.sort(this.values, new Comparator<SinkValue>() {
-			@Override
-			public int compare(SinkValue o1, SinkValue o2) {
-				return Long.compare(o1.getTimestamp(), o2.getTimestamp());
-			}
-		});
+		if (sort) {
+			// sort them chronologically
+			Collections.sort(this.values, new Comparator<SinkValue>() {
+				@Override
+				public int compare(SinkValue o1, SinkValue o2) {
+					return Long.compare(o1.getTimestamp(), o2.getTimestamp());
+				}
+			});
+		}
 	}
 	
 	@Override
