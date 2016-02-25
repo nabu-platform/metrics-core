@@ -23,7 +23,8 @@ public class SustainedThresholdFilter implements EventHandler<SinkEvent, Boolean
 	@Override
 	public Boolean handle(SinkEvent event) {
 		if (event.getSink() instanceof HistorySink) {
-			SinkSnapshot snapshot = ((HistorySink) event.getSink()).getSnapshotAfter(new Date().getTime() - duration);
+			long time = new Date().getTime();
+			SinkSnapshot snapshot = ((HistorySink) event.getSink()).getSnapshotBetween(time - duration, time);
 			if (snapshot.getValues().isEmpty()) {
 				return true;
 			}

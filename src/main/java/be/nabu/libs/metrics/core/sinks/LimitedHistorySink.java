@@ -48,7 +48,7 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 	}
 
 	@Override
-	public SinkSnapshot getSnapshotAfter(long after) {
+	public SinkSnapshot getSnapshotBetween(long from, long until) {
 		// we do a getAndIncrement, that means the current counter is one ahead of what we have last written
 		long index = counter.get() - 1;
 		List<SinkValue> values = new ArrayList<SinkValue>();
@@ -57,8 +57,13 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 			SinkValueImpl value = new SinkValueImpl(this.timestamps.get((int) ((index - i) % size)), this.values.get((int) ((index - i) % size)));
 			// only add the value if the timestamp is in the window
 			// otherwise we still continue because the insertions may not be chronologically (due to parallelism)
-			if (value.getTimestamp() > after) {
-				values.add(value);
+			if (value.getTimestamp() >= from) {
+				if (value.getTimestamp() <= until) {
+					values.add(value);
+				}
+				else {
+					break;
+				}
 			}
 		}
 		return new SinkSnapshotImpl(values);
@@ -69,4 +74,5 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 		List<SinkValue> values = getSnapshot(1).getValues();
 		return values.isEmpty() ? null : values.get(0);
 	}
+
 }
