@@ -50,7 +50,7 @@ public class StatisticsSink implements SinkStatistics, Sink {
 			}
 		}
 		// keep track of the maximum deviation from the cma to be able to generate a correct remainder overview
-		double currentDeviation = Math.abs((double) value / cma.getValue());
+		double currentDeviation = cma.getValue() == 0 ? 0 : Math.abs((double) value / cma.getValue());
 		if (currentDeviation > maxDeviation) {
 			maxDeviation = currentDeviation;
 		}
@@ -88,10 +88,10 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		long remaining = totalValues;
 		for (int i = 0; i < deviations.length; i++) {
 			remaining -= cmaDeviation[i];
-			result.add(new DeviationImpl(deviations[i], (double) cmaDeviation[i] / (double) totalValues));
+			result.add(new DeviationImpl(deviations[i], totalValues == 0 ? 0 : (double) cmaDeviation[i] / (double) totalValues));
 		}
 		// put the "remainder" in the max deviation
-		result.add(new DeviationImpl(maxDeviation, (double) remaining / (double) totalValues));
+		result.add(new DeviationImpl(maxDeviation, totalValues == 0 ? 0 : (double) remaining / (double) totalValues));
 		return result;
 	}
 
