@@ -3,27 +3,19 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>be.nabu.libs.metrics</groupId>
 	<artifactId>metrics-core</artifactId>
-	<packaging>bundle</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<version>${be.nabu.libs.metrics-metrics-core-version}</version>
 	<name>metrics-core</name>
 	<url>http://maven.apache.org</url>
 
+	<parent>
+		<groupId>be.nabu</groupId>
+		<artifactId>core</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.3.7</version>
-				<extensions>true</extensions>
-				<configuration>
-					<instructions>
-						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-						<Bundle-Name>${project.artifactId}</Bundle-Name>
-						<Bundle-Version>1.0.0</Bundle-Version>
-						<Export-Package>${project.groupId}.core</Export-Package>
-					</instructions>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -39,18 +31,10 @@
 		<dependency>
 			<groupId>be.nabu.libs.metrics</groupId>
 			<artifactId>metrics-api</artifactId>
-			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>be.nabu.libs.events</groupId>
 			<artifactId>events-api</artifactId>
-			<version>1.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
