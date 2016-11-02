@@ -2,6 +2,7 @@ package be.nabu.libs.metrics.core.sinks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import be.nabu.libs.metrics.core.DeviationImpl;
 import be.nabu.libs.metrics.core.SinkValueImpl;
@@ -15,11 +16,13 @@ public class StatisticsSink implements SinkStatistics, Sink {
 	private SinkValue min, max;
 	private EMASink ema;
 	private CMASink cma;
-	private long totalValues;
+	private AtomicLong totalValues = new AtomicLong();
 	
-	private double maxDeviation;
+	// double
+	private AtomicLong maxDeviation = new AtomicLong();
+	// doubles
 	private double [] deviations;
-	private long [] cmaDeviation;
+	private AtomicLong [] cmaDeviation;
 	
 	public StatisticsSink() {
 		this(100);
@@ -29,7 +32,10 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		this.ema = new EMASink(emaWindow);
 		this.cma = new CMASink();
 		this.deviations = deviations == null || deviations.length == 0 ? new double [] { 0.25, 0.50, 0.75 } : deviations;
-		this.cmaDeviation = new long[this.deviations.length];
+		this.cmaDeviation = new AtomicLong[this.deviations.length];
+		for (int i = 0; i < this.deviations.length; i++) {
+			this.cmaDeviation[i] = new AtomicLong();
+		}
 	}
 	
 	@Override
@@ -42,17 +48,18 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		}
 		ema.push(timestamp, value);
 		cma.push(timestamp, value);
-		totalValues++;
+		totalValues.incrementAndGet();
 		for (int i = 0; i < deviations.length; i++) {
 			if (isWithinDeviation(value, deviations[i])) {
-				cmaDeviation[i]++;
+				cmaDeviation[i].incrementAndGet();
 				break;
 			}
 		}
 		// keep track of the maximum deviation from the cma to be able to generate a correct remainder overview
 		double currentDeviation = cma.getValue() == 0 ? 0 : Math.abs((double) value / cma.getValue());
-		if (currentDeviation > maxDeviation) {
-			maxDeviation = currentDeviation;
+		double currentMaxDeviation = Double.longBitsToDouble(maxDeviation.get());
+		if (currentDeviation > currentMaxDeviation) {
+			maxDeviation.set(Double.doubleToLongBits(currentDeviation));
 		}
 	}
 	
@@ -85,13 +92,13 @@ public class StatisticsSink implements SinkStatistics, Sink {
 	@Override
 	public List<Deviation> getCumulativeAverageDeviation() {
 		List<Deviation> result = new ArrayList<Deviation>();
-		long remaining = totalValues;
+		long remaining = totalValues.get();
 		for (int i = 0; i < deviations.length; i++) {
-			remaining -= cmaDeviation[i];
-			result.add(new DeviationImpl(deviations[i], totalValues == 0 ? 0 : (double) cmaDeviation[i] / (double) totalValues));
+			remaining -= cmaDeviation[i].get();
+			result.add(new DeviationImpl(deviations[i], totalValues.get() == 0 ? 0 : Double.longBitsToDouble(cmaDeviation[i].get()) / (double) totalValues.get()));
 		}
 		// put the "remainder" in the max deviation
-		result.add(new DeviationImpl(maxDeviation, totalValues == 0 ? 0 : (double) remaining / (double) totalValues));
+		result.add(new DeviationImpl(Double.longBitsToDouble(maxDeviation.get()), totalValues.get() == 0 ? 0 : (double) remaining / (double) totalValues.get()));
 		return result;
 	}
 
