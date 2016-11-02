@@ -28,4 +28,8 @@ public interface SinkStatistics {
 	 * This gives a number of "zones" around the cumulative average that give instant feedback over metric volatility
 	 */
 	public List<Deviation> getCumulativeAverageDeviation();
+	/**
+	 * The amount of data points collected to calculate the statistics
+	 */
+	public long getAmountOfDataPoints();
 }

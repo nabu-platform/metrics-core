@@ -102,4 +102,9 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		return result;
 	}
 
+	@Override
+	public long getAmountOfDataPoints() {
+		return totalValues.get();
+	}
+
 }

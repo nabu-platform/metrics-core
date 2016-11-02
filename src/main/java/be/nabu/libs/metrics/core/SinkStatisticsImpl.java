@@ -11,6 +11,7 @@ public class SinkStatisticsImpl implements SinkStatistics {
 	private SinkValue min, max;
 	private double exponentialAverage, cumulativeAverage;
 	private List<Deviation> cumulativeAverageDeviation;
+	private long amountOfDataPoints;
 	
 	public SinkStatisticsImpl() {
 		// auto construct
@@ -21,6 +22,7 @@ public class SinkStatisticsImpl implements SinkStatistics {
 		this.exponentialAverage = snapshot.getExponentialAverage();
 		this.cumulativeAverage = snapshot.getCumulativeAverage();
 		this.cumulativeAverageDeviation = snapshot.getCumulativeAverageDeviation();
+		this.amountOfDataPoints = snapshot.getAmountOfDataPoints();
 	}
 	
 	@Override
@@ -61,5 +63,9 @@ public class SinkStatisticsImpl implements SinkStatistics {
 	}
 	public void setCumulativeAverageDeviation(List<Deviation> cumulativeAverageDeviation) {
 		this.cumulativeAverageDeviation = cumulativeAverageDeviation;
+	}
+	@Override
+	public long getAmountOfDataPoints() {
+		return amountOfDataPoints;
 	}
 }
