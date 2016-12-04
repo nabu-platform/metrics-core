@@ -68,4 +68,7 @@ public class SinkStatisticsImpl implements SinkStatistics {
 	public long getAmountOfDataPoints() {
 		return amountOfDataPoints;
 	}
+	public void setAmountOfDataPoints(long amountOfDataPoints) {
+		this.amountOfDataPoints = amountOfDataPoints;
+	}
 }
