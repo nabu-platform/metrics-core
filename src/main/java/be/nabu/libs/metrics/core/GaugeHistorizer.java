@@ -19,8 +19,8 @@ public class GaugeHistorizer implements Runnable {
 	public void run() {
 		while (!Thread.interrupted()) {
 			Date started = new Date();
-			for (MetricInstanceImpl instance : instances) {
-				for (String id : instance.getGaugeIds()) {
+			for (MetricInstanceImpl instance : new ArrayList<MetricInstanceImpl>(instances)) {
+				for (String id : new ArrayList<String>(instance.getGaugeIds())) {
 					instance.log(id, instance.getGauge(id).getValue());
 				}
 			}
