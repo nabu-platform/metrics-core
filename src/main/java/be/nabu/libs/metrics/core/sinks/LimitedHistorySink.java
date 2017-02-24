@@ -1,8 +1,12 @@
 package be.nabu.libs.metrics.core.sinks;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
@@ -12,12 +16,14 @@ import be.nabu.libs.metrics.core.api.CurrentValueSink;
 import be.nabu.libs.metrics.core.api.HistorySink;
 import be.nabu.libs.metrics.core.api.SinkSnapshot;
 import be.nabu.libs.metrics.core.api.SinkValue;
+import be.nabu.libs.metrics.core.api.TaggableSink;
 
-public class LimitedHistorySink implements HistorySink, CurrentValueSink {
+public class LimitedHistorySink implements HistorySink, CurrentValueSink, TaggableSink {
 	
 	protected AtomicLong counter;
 	protected AtomicLongArray timestamps, values;
 	protected int size;
+	protected Map<String, String> tags = Collections.synchronizedMap(new HashMap<String, String>());
 	
 	public LimitedHistorySink(int size) {
 		this.size = size;
@@ -78,6 +84,21 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink {
 	public SinkValue getCurrent() {
 		List<SinkValue> values = getSnapshotUntil(1, new Date().getTime()).getValues();
 		return values.isEmpty() ? null : values.get(0);
+	}
+
+	@Override
+	public String getTag(String key) {
+		return tags.get(key);
+	}
+
+	@Override
+	public void setTag(String key, String value) {
+		tags.put(key, value);		
+	}
+
+	@Override
+	public Collection<String> getTags() {
+		return tags.keySet();
 	}
 
 }
