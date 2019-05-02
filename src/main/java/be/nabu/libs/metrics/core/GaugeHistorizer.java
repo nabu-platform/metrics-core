@@ -24,12 +24,15 @@ public class GaugeHistorizer implements Runnable {
 					instance.log(id, instance.getGauge(id).getValue());
 				}
 			}
-			try {
-				// sleep for whatever is left of the interval
-				Thread.sleep(interval - (new Date().getTime() - started.getTime()));
-			}
-			catch (InterruptedException e) {
-				break;
+			long sleep = interval - (new Date().getTime() - started.getTime());
+			if (sleep > 0) {
+				try {
+					// sleep for whatever is left of the interval
+					Thread.sleep(sleep);
+				}
+				catch (InterruptedException e) {
+					break;
+				}
 			}
 		}
 	}
