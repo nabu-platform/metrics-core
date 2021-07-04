@@ -22,6 +22,7 @@ public class MetricInstanceImpl implements MetricInstance {
 	private String id;
 	private Map<String, MetricGauge> gauges = new HashMap<String, MetricGauge>();
 	private EventDispatcher dispatcher;
+	private boolean enableEvents = true;
 	
 	/**
 	 * By default we do not normalize the timers because default behavior should be chronologically consistent metrics
@@ -66,7 +67,7 @@ public class MetricInstanceImpl implements MetricInstance {
 	
 	private void pushToSink(final String category, final long timestamp, final long value) {
 		sinks.get(category).push(timestamp, value);
-		if (dispatcher != null) {
+		if (dispatcher != null && enableEvents) {
 			dispatcher.fire(new SinkEvent() {
 				@Override
 				public long getValue() {
@@ -161,5 +162,13 @@ public class MetricInstanceImpl implements MetricInstance {
 	}
 	public void setDispatcher(EventDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
+	}
+
+	public boolean isEnableEvents() {
+		return enableEvents;
+	}
+
+	public void setEnableEvents(boolean enableEvents) {
+		this.enableEvents = enableEvents;
 	}
 }

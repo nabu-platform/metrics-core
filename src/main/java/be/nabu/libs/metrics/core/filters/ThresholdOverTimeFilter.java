@@ -8,6 +8,9 @@ import be.nabu.libs.metrics.core.api.SinkEvent;
 import be.nabu.libs.metrics.core.api.SinkSnapshot;
 import be.nabu.libs.metrics.core.api.SinkValue;
 
+/**
+ * Suppose the event is "100" and the oldest event in the window is "50". If your threshold is 49, it will trigger (if above)
+ */
 public class ThresholdOverTimeFilter implements EventHandler<SinkEvent, Boolean> {
 
 	private boolean above;

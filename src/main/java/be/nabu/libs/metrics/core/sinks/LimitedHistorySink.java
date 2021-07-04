@@ -50,9 +50,9 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink, Taggab
 		amount = (int) Math.min(amount, index + 1);
 		int counter = 0;
 		while(values.size() < amount && counter <= index) {
-			SinkValueImpl value = new SinkValueImpl(this.timestamps.get((int) ((index - counter) % size)), this.values.get((int) ((index - counter++) % size)));
-			if (value.getTimestamp() <= until) {
-				values.add(value);
+			long timestamp = this.timestamps.get((int) ((index - counter) % size));
+			if (timestamp <= until) {
+				values.add(new SinkValueImpl(timestamp, this.values.get((int) ((index - counter++) % size))));
 			}
 		}
 		return new SinkSnapshotImpl(values);
@@ -65,12 +65,12 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink, Taggab
 		List<SinkValue> values = new ArrayList<SinkValue>();
 		// note that this implementation is susceptible to wrap-around but because we are doing a time-based check, you will simply get new values
 		for (int i = 0; i < Math.min(size, index + 1); i++) {
-			SinkValueImpl value = new SinkValueImpl(this.timestamps.get((int) ((index - i) % size)), this.values.get((int) ((index - i) % size)));
+			long timestamp = this.timestamps.get((int) ((index - i) % size));
 			// only add the value if the timestamp is in the window
 			// otherwise we still continue because the insertions may not be chronologically (due to parallelism)
-			if (value.getTimestamp() >= from) {
-				if (value.getTimestamp() <= until) {
-					values.add(value);
+			if (timestamp >= from) {
+				if (timestamp <= until) {
+					values.add(new SinkValueImpl(timestamp, this.values.get((int) ((index - i) % size))));
 				}
 				else {
 					break;
