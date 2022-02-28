@@ -12,14 +12,18 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import be.nabu.libs.metrics.core.SinkSnapshotImpl;
 import be.nabu.libs.metrics.core.SinkValueImpl;
+import be.nabu.libs.metrics.core.api.AutomatedWindowSink;
 import be.nabu.libs.metrics.core.api.CurrentValueSink;
 import be.nabu.libs.metrics.core.api.HistorySink;
+import be.nabu.libs.metrics.core.api.ResettableSink;
 import be.nabu.libs.metrics.core.api.SinkSnapshot;
 import be.nabu.libs.metrics.core.api.SinkValue;
 import be.nabu.libs.metrics.core.api.TaggableSink;
 
-public class LimitedHistorySink implements HistorySink, CurrentValueSink, TaggableSink {
-	
+public class LimitedHistorySink implements HistorySink, CurrentValueSink, TaggableSink, AutomatedWindowSink, ResettableSink {
+	// how long should the window interval take if set?
+	protected long windowInterval;
+	protected long windowStart, windowStop;
 	protected AtomicLong counter;
 	protected AtomicLongArray timestamps, values;
 	protected int size;
@@ -30,10 +34,23 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink, Taggab
 		counter = new AtomicLong(0);
 		timestamps = new AtomicLongArray(size);
 		values = new AtomicLongArray(size);
+		windowStart = new Date().getTime();
+		windowStop = windowStart;
 	}
 	
 	@Override
 	public void push(long timestamp, long value) {
+		if (windowInterval > 0 && timestamp > windowStart + windowInterval) {
+			// we want the windows to be sequential if we have configured an interval
+			if (windowInterval > 0) {
+				reset(windowStart + windowInterval);
+			}
+			else {
+				reset();
+			}
+		}
+		// the current window stops at the last timestamp
+		windowStop = timestamp;
 		long index = counter.getAndIncrement();
 		timestamps.lazySet((int) (index % size), timestamp);
 		values.lazySet((int) (index % size), value);
@@ -101,4 +118,28 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink, Taggab
 		return tags.keySet();
 	}
 
+	@Override
+	public long getWindowStart() {
+		return windowStart;
+	}
+
+	@Override
+	public void reset() {
+		reset(new Date().getTime());
+	}
+
+	protected void reset(long windowStart) {
+		counter.set(0);
+		this.windowStart = windowStart;
+	}
+
+	@Override
+	public long getWindowStop() {
+		return windowStop;
+	}
+
+	@Override
+	public void setWindowInterval(long milliseconds) {
+		this.windowInterval = milliseconds;
+	}
 }

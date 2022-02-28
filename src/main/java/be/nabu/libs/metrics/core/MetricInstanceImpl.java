@@ -103,7 +103,7 @@ public class MetricInstanceImpl implements MetricInstance {
 		if (!sinks.containsKey(category)) {
 			synchronized(sinks) {
 				if (!sinks.containsKey(category)) {
-					sinks.put(category, new DeltaSink(sinkProvider.getSink(category, category)));
+					sinks.put(category, new DeltaSink(sinkProvider.getSink(id, category)));
 				}
 			}
 		}

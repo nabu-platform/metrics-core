@@ -1,6 +1,7 @@
 package be.nabu.libs.metrics.core.sinks;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -10,12 +11,14 @@ import be.nabu.libs.metrics.core.api.Deviation;
 import be.nabu.libs.metrics.core.api.Sink;
 import be.nabu.libs.metrics.core.api.SinkStatistics;
 import be.nabu.libs.metrics.core.api.SinkValue;
+import be.nabu.libs.metrics.core.api.WindowedSink;
 
-public class StatisticsSink implements SinkStatistics, Sink {
+public class StatisticsSink implements SinkStatistics, Sink, WindowedSink {
 
 	private SinkValue min, max;
 	private EMASink ema;
 	private CMASink cma;
+	private long windowStart, windowStop;
 	private AtomicLong totalValues = new AtomicLong();
 	
 	// double
@@ -36,6 +39,8 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		for (int i = 0; i < this.deviations.length; i++) {
 			this.cmaDeviation[i] = new AtomicLong();
 		}
+		windowStart = new Date().getTime();
+		windowStop = windowStart;
 	}
 	
 	@Override
@@ -61,6 +66,7 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		if (currentDeviation > currentMaxDeviation) {
 			maxDeviation.set(Double.doubleToLongBits(currentDeviation));
 		}
+		windowStop = timestamp;
 	}
 	
 	private boolean isWithinDeviation(long value, double deviationPercentage) {
@@ -107,4 +113,24 @@ public class StatisticsSink implements SinkStatistics, Sink {
 		return totalValues.get();
 	}
 
+	@Override
+	public long getWindowStart() {
+		return windowStart;
+	}
+
+	@Override
+	public long getWindowStop() {
+		return windowStop;
+	}
+
+	// allow changing the window for reporting reasons
+	// e.g. the actual window is 2-6 but for standardization (like connecting windows) you want 0-10
+	public void setWindowStart(long windowStart) {
+		this.windowStart = windowStart;
+	}
+
+	public void setWindowStop(long windowStop) {
+		this.windowStop = windowStop;
+	}
+	
 }
