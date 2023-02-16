@@ -34,16 +34,28 @@ public class LimitedHistorySink implements HistorySink, CurrentValueSink, Taggab
 		counter = new AtomicLong(0);
 		timestamps = new AtomicLongArray(size);
 		values = new AtomicLongArray(size);
-		windowStart = new Date().getTime();
+		windowStart = getNearestWindowStart();
 		windowStop = windowStart;
 	}
 	
+	public long getNearestWindowStart() {
+		long now = new Date().getTime();
+		// if we have an interval, try to reduce it to a clean starting point
+		// e.g. if you start the server at 00:02:34.567 with an interval of 5 minutes we might want the window to run from 00:00-00:05.
+		// this can make future interpretations of the data easier 
+		if (windowInterval > 0) {
+			now -= now % windowInterval;
+		}
+		return now;
+	}
+	// TODO: pushing historic data will not work correctly with the windows. we currently assume the timestamp that you push is (near) the current time, otherwise the windowing will be done wrong. We could base the windowing on the timestamp itself, but jumping back and forth would still produce weird results
 	@Override
 	public void push(long timestamp, long value) {
 		if (windowInterval > 0 && timestamp > windowStart + windowInterval) {
 			// we want the windows to be sequential if we have configured an interval
 			if (windowInterval > 0) {
-				reset(windowStart + windowInterval);
+				// the nearest window start should (almost?) always be accurate, the math.max is just to make sure when migrating from old code
+				reset(Math.max(windowStart + windowInterval, getNearestWindowStart()));
 			}
 			else {
 				reset();
