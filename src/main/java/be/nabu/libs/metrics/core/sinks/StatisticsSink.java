@@ -21,6 +21,8 @@ public class StatisticsSink implements SinkStatistics, Sink, WindowedSink {
 	private long windowStart, windowStop;
 	private AtomicLong totalValues = new AtomicLong();
 	
+	private AtomicLong total = new AtomicLong();
+	
 	// double
 	private AtomicLong maxDeviation = new AtomicLong();
 	// doubles
@@ -67,6 +69,7 @@ public class StatisticsSink implements SinkStatistics, Sink, WindowedSink {
 			maxDeviation.set(Double.doubleToLongBits(currentDeviation));
 		}
 		windowStop = timestamp;
+		total.addAndGet(value);
 	}
 	
 	private boolean isWithinDeviation(long value, double deviationPercentage) {
@@ -83,6 +86,10 @@ public class StatisticsSink implements SinkStatistics, Sink, WindowedSink {
 	@Override
 	public SinkValue getMaximum() {
 		return max;
+	}
+	
+	public long getTotal() {
+		return total.get();
 	}
 	
 	@Override

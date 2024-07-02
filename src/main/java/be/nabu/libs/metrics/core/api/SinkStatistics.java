@@ -32,4 +32,10 @@ public interface SinkStatistics {
 	 * The amount of data points collected to calculate the statistics
 	 */
 	public long getAmountOfDataPoints();
+	
+	/**
+	 * Get the combined total
+	 * For large numbers this may overflow but for the vast majority of numbers (given a small enough window), it should be representative
+	 */
+	public long getTotal();
 }
