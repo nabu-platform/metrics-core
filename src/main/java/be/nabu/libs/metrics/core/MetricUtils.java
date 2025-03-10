@@ -17,6 +17,8 @@
 
 package be.nabu.libs.metrics.core;
 
+import java.util.Date;
+
 import be.nabu.libs.metrics.core.api.SinkSnapshot;
 import be.nabu.libs.metrics.core.api.SinkStatistics;
 import be.nabu.libs.metrics.core.api.SinkValue;
@@ -30,6 +32,17 @@ public class MetricUtils {
 			sink.push(value.getTimestamp(), value.getValue());
 		}
 		return sink;
+	}
+	
+	public static long getNearestWindowStart(long windowInterval) {
+		long now = new Date().getTime();
+		// if we have an interval, try to reduce it to a clean starting point
+		// e.g. if you start the server at 00:02:34.567 with an interval of 5 minutes we might want the window to run from 00:00-00:05.
+		// this can make future interpretations of the data easier 
+		if (windowInterval > 0) {
+			now -= now % windowInterval;
+		}
+		return now;
 	}
 	
 }

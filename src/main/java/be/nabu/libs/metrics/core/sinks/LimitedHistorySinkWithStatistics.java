@@ -20,8 +20,6 @@ package be.nabu.libs.metrics.core.sinks;
 import be.nabu.libs.metrics.core.api.SinkStatistics;
 import be.nabu.libs.metrics.core.api.StatisticsContainer;
 import be.nabu.libs.metrics.core.api.StatisticsListener;
-import be.nabu.libs.metrics.core.sinks.LimitedHistorySink;
-import be.nabu.libs.metrics.core.sinks.StatisticsSink;
 
 public class LimitedHistorySinkWithStatistics extends LimitedHistorySink implements StatisticsContainer {
 

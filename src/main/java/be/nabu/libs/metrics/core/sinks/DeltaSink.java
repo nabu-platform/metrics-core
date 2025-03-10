@@ -19,24 +19,63 @@ package be.nabu.libs.metrics.core.sinks;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import be.nabu.libs.metrics.core.MetricUtils;
+import be.nabu.libs.metrics.core.api.AutomatedWindowSink;
 import be.nabu.libs.metrics.core.api.Sink;
 
 /**
  * This maintains a current value and allows you to send incremental delta's instead of full values 
  */
-public class DeltaSink implements Sink {
+public class DeltaSink implements Sink, AutomatedWindowSink {
 
+	protected long windowInterval;
+	protected long windowStart, windowStop;
+	
 	private AtomicLong value;
 	private Sink parent;
 	
 	public DeltaSink(Sink parent) {
 		this.parent = parent;
 		value = new AtomicLong(0);
+		windowStart = MetricUtils.getNearestWindowStart(windowInterval);
+		windowStop = windowStart;
 	}
 	
 	@Override
 	public void push(long timestamp, long value) {
+		if (windowInterval > 0 && timestamp > windowStart + windowInterval) {
+			reset(Math.max(windowStart + windowInterval, MetricUtils.getNearestWindowStart(windowInterval)));
+		}
+		// the current window stops at the last timestamp
+		windowStop = timestamp;
+		
 		parent.push(timestamp, this.value.addAndGet(value));
+	}
+	
+	protected void reset(long windowStart) {
+		// reset to 0
+		value.set(0);
+		this.windowStart = windowStart;
+	}
+
+	@Override
+	public long getWindowStart() {
+		return windowStart;
+	}
+
+	@Override
+	public long getWindowStop() {
+		return windowStop;
+	}
+
+	@Override
+	public void setWindowInterval(long milliseconds) {
+		this.windowInterval = milliseconds;
+	}
+	
+	@Override
+	public long getWindowInterval() {
+		return windowInterval;
 	}
 
 }

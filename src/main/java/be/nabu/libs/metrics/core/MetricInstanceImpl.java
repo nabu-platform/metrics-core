@@ -120,6 +120,10 @@ public class MetricInstanceImpl implements MetricInstance {
 		if (!sinks.containsKey(category)) {
 			synchronized(sinks) {
 				if (!sinks.containsKey(category)) {
+					// TODO: at one point i changed this so the delta sink would inherit the windowing from the target sink
+					// this would reset the delta value per window
+					// however, there is also the "amount of data points" which (at least for a delta of 1) indicates how many new points were added during a window
+					// the max and min (diffed) also give a good overview
 					sinks.put(category, new DeltaSink(sinkProvider.getSink(id, category)));
 				}
 			}
